@@ -12,63 +12,65 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LIGHT + BROWN THEME CSS ----------------
+# ---------------- STRONG BROWN + LIGHT THEME CSS ----------------
 st.markdown("""
 <style>
-/* Main background */
+/* App background */
 .stApp {
-    background-color: #fafaf9;
+    background-color: #fafaf7;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #f3ede7;
+    background-color: #f2e8dc;
 }
 
 /* Sidebar text */
 section[data-testid="stSidebar"] * {
-    color: #3b2f2f;
+    color: #4a2c1a;
+    font-weight: 500;
 }
 
 /* Buttons */
 .stButton>button {
-    background-color: #7c3f00;
-    color: white;
-    border-radius: 10px;
-    padding: 8px 18px;
-    font-weight: 600;
+    background-color: #8b4513 !important;
+    color: white !important;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 700;
+    border: none;
 }
 
 .stButton>button:hover {
-    background-color: #6a3400;
+    background-color: #6f350d !important;
 }
 
 /* Week cards */
 .week-card {
-    padding: 16px;
+    padding: 18px;
     border-radius: 14px;
-    margin-bottom: 16px;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.06);
+    margin-bottom: 18px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
 }
 
-/* Normal learning week */
+/* Normal weeks */
 .normal-week {
     background-color: #ffffff;
-    border-left: 6px solid #d6ccc2;
+    border-left: 6px solid #d6c2b2;
 }
 
-/* Project-related week */
+/* Project phase weeks */
 .project-week {
     background-color: #ecfdf5;
-    border-left: 6px solid #22c55e;
+    border-left: 6px solid #16a34a;
 }
 
 /* Headings */
 h1 {
-    color: #5c2e00;
+    color: #6b2e00;
 }
 h2, h3, h4 {
-    color: #3b2f2f;
+    color: #4a2c1a;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -77,7 +79,7 @@ h2, h3, h4 {
 st.markdown(
     """
     <h1 style='text-align:center;'>📘 CurricuForge</h1>
-    <h4 style='text-align:center;color:#7c3f00;'>
+    <h4 style='text-align:center;color:#8b4513;'>
     Adaptive Preparation Scheduler with Project-Based Learning
     </h4>
     <hr>
@@ -102,7 +104,7 @@ duration = st.sidebar.slider(
     value=6
 )
 
-generate_btn = st.sidebar.button("🚀 Generate Schedule")
+generate_btn = st.sidebar.button("📅 Generate Curriculum")
 
 # ---------------- GENERATE PLAN ----------------
 if generate_btn:
@@ -117,16 +119,18 @@ if "plan" in st.session_state:
 
     cols = st.columns(2)
 
+    # ✅ FIX: detect project start week
+    project_started = False
+
     for idx, week in enumerate(st.session_state["plan"]):
         col = cols[idx % 2]
 
-        # ✅ FIX: Detect project presence in ANY unit
-        is_project_week = any(
-            "Project" in unit["topic"]
-            for unit in week["units"]
-        )
+        # If any unit contains Project → mark project phase started
+        if any("Project" in u["topic"] for u in week["units"]):
+            project_started = True
 
-        card_class = "project-week" if is_project_week else "normal-week"
+        # Apply green to ALL weeks after project starts
+        card_class = "project-week" if project_started else "normal-week"
 
         with col:
             st.markdown(
@@ -139,7 +143,7 @@ if "plan" in st.session_state:
 
             for unit in week["units"]:
                 st.markdown(
-                    f"- **{unit['topic']}**  \n<span style='color:#6b4f3f;'>{unit['subtopic']}</span>",
+                    f"- **{unit['topic']}**  \n<span style='color:#5c4033;'>{unit['subtopic']}</span>",
                     unsafe_allow_html=True
                 )
 
@@ -165,15 +169,15 @@ if "plan" in st.session_state:
         st.session_state["plan"] = updated_plan
 
         st.success(
-            f"Missed Week {missed_week} topics were merged smoothly into upcoming weeks."
+            f"Missed Week {missed_week} topics were merged into upcoming weeks."
         )
 
 # ---------------- FOOTER ----------------
 st.markdown(
     """
     <hr>
-    <p style='text-align:center;color:#7c3f00;'>
-    CurricuForge • Clean • Adaptive • Project-Oriented
+    <p style='text-align:center;color:#8b4513;'>
+    CurricuForge • Professional • Adaptive • Project-Oriented
     </p>
     """,
     unsafe_allow_html=True
