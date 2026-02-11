@@ -7,90 +7,65 @@ from curriculum_generator import (
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="CurricuForge",
-    page_icon="📘",
+    page_title="CurricuForge – Smart Preparation Planner",
     layout="wide"
 )
 
-# ---------------- STRONG BROWN + LIGHT THEME CSS ----------------
+# ---------------- CUSTOM CSS ----------------
 st.markdown("""
 <style>
-/* App background */
-.stApp {
-    background-color: #fafaf7;
+body {
+    background-color: #faf7f2;
 }
 
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: #f2e8dc;
+.sidebar .sidebar-content {
+    background-color: #f3e9dc;
 }
 
-/* Sidebar text */
-section[data-testid="stSidebar"] * {
-    color: #4a2c1a;
-    font-weight: 500;
+.block-container {
+    padding-top: 2rem;
 }
 
-/* Buttons */
-.stButton>button {
-    background-color: #8b4513 !important;
-    color: white !important;
-    border-radius: 12px;
-    padding: 10px 20px;
-    font-weight: 700;
-    border: none;
-}
-
-.stButton>button:hover {
-    background-color: #6f350d !important;
-}
-
-/* Week cards */
 .week-card {
-    padding: 18px;
-    border-radius: 14px;
-    margin-bottom: 18px;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
-}
-
-/* Normal weeks */
-.normal-week {
     background-color: #ffffff;
-    border-left: 6px solid #d6c2b2;
+    border-left: 8px solid #8b5e3c;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
 }
 
-/* Project phase weeks */
-.project-week {
-    background-color: #ecfdf5;
-    border-left: 6px solid #16a34a;
+.week-card-project {
+    background-color: #eefbf3;
+    border-left: 8px solid #2e8b57;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
 }
 
-/* Headings */
-h1 {
-    color: #6b2e00;
+button[kind="primary"] {
+    background-color: #8b5e3c;
+    color: white;
 }
-h2, h3, h4 {
-    color: #4a2c1a;
+
+h1, h2, h3 {
+    color: #4a2c2a;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER ----------------
-st.markdown(
-    """
-    <h1 style='text-align:center;'>📘 CurricuForge</h1>
-    <h4 style='text-align:center;color:#8b4513;'>
-    Adaptive Preparation Scheduler with Project-Based Learning
-    </h4>
-    <hr>
-    """,
-    unsafe_allow_html=True
+# ---------------- SIDEBAR ----------------
+st.sidebar.markdown("## 📚 Preparation Setup")
+
+course = st.sidebar.selectbox(
+    "Course / Subject",
+    [
+        "Machine Learning",
+        "Artificial Intelligence",
+        "Data Science",
+        "Web Development",
+        "Cyber Security"
+    ]
 )
-
-# ---------------- SIDEBAR INPUTS ----------------
-st.sidebar.header("🧠 Preparation Setup")
-
-subject = st.sidebar.text_input("Course / Subject", "Machine Learning")
 
 level = st.sidebar.selectbox(
     "Target Level",
@@ -99,86 +74,80 @@ level = st.sidebar.selectbox(
 
 duration = st.sidebar.slider(
     "Duration (Weeks)",
-    min_value=1,
-    max_value=20,
+    min_value=2,
+    max_value=12,
     value=6
 )
 
-generate_btn = st.sidebar.button("📅 Generate Curriculum")
+generate = st.sidebar.button("🚀 Generate Curriculum")
 
-# ---------------- GENERATE PLAN ----------------
-if generate_btn:
-    curriculum = generate_curriculum(subject, level)
+# ---------------- MAIN LOGIC ----------------
+if generate:
+    curriculum = generate_curriculum(course, level)
     plan = create_weekly_plan(curriculum, duration)
 
     st.session_state["plan"] = plan
+    st.session_state["course"] = course
+    st.session_state["level"] = level
+    st.session_state["duration"] = duration
 
-# ---------------- DISPLAY SCHEDULE ----------------
+# ---------------- DISPLAY CURRICULUM ----------------
 if "plan" in st.session_state:
-    st.subheader("📆 Preparation Schedule")
+    st.markdown("## 🎯 Generated Curriculum")
+    st.write(f"**Course:** {st.session_state['course']}")
+    st.write(f"**Level:** {st.session_state['level']}")
+    st.write(f"**Duration:** {st.session_state['duration']} weeks")
+    st.markdown("---")
 
-    cols = st.columns(2)
+    for week in st.session_state["plan"]:
+        is_project = any("Project" in u["topic"] for u in week["units"])
 
-    # ✅ FIX: detect project start week
-    project_started = False
+        card_class = "week-card-project" if is_project else "week-card"
 
-    for idx, week in enumerate(st.session_state["plan"]):
-        col = cols[idx % 2]
+        st.markdown(
+            f"<div class='{card_class}'>"
+            f"<h3>Week {week['week']}</h3>",
+            unsafe_allow_html=True
+        )
 
-        # If any unit contains Project → mark project phase started
-        if any("Project" in u["topic"] for u in week["units"]):
-            project_started = True
-
-        # Apply green to ALL weeks after project starts
-        card_class = "project-week" if project_started else "normal-week"
-
-        with col:
+        for unit in week["units"]:
             st.markdown(
-                f"""
-                <div class="week-card {card_class}">
-                    <h4>Week {week['week']}</h4>
-                """,
+                f"• **{unit['topic']}** — {unit['subtopic']}"
+            )
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # ---------------- RESCHEDULING ----------------
+    st.markdown("## 🔄 Missed a Week?")
+    missed_week = st.number_input(
+        "Enter missed week number",
+        min_value=1,
+        max_value=len(st.session_state["plan"]),
+        step=1
+    )
+
+    if st.button("Reschedule"):
+        new_plan = reschedule_from_missed_week(
+            st.session_state["plan"],
+            missed_week
+        )
+
+        st.markdown("## ✅ Rescheduled Curriculum")
+        for week in new_plan:
+            is_project = any("Project" in u["topic"] for u in week["units"])
+            card_class = "week-card-project" if is_project else "week-card"
+
+            st.markdown(
+                f"<div class='{card_class}'>"
+                f"<h3>Week {week['week']}</h3>",
                 unsafe_allow_html=True
             )
 
             for unit in week["units"]:
                 st.markdown(
-                    f"- **{unit['topic']}**  \n<span style='color:#5c4033;'>{unit['subtopic']}</span>",
-                    unsafe_allow_html=True
+                    f"• **{unit['topic']}** — {unit['subtopic']}"
                 )
 
             st.markdown("</div>", unsafe_allow_html=True)
 
-    # ---------------- RESCHEDULING ----------------
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.subheader("🔄 Reschedule After Interruption")
-
-    missed_week = st.number_input(
-        "Select the week you missed",
-        min_value=1,
-        max_value=len(st.session_state["plan"]),
-        value=1
-    )
-
-    if st.button("♻️ Reschedule Preparation"):
-        updated_plan = reschedule_from_missed_week(
-            st.session_state["plan"],
-            missed_week
-        )
-
-        st.session_state["plan"] = updated_plan
-
-        st.success(
-            f"Missed Week {missed_week} topics were merged into upcoming weeks."
-        )
-
-# ---------------- FOOTER ----------------
-st.markdown(
-    """
-    <hr>
-    <p style='text-align:center;color:#8b4513;'>
-    CurricuForge • Professional • Adaptive • Project-Oriented
-    </p>
-    """,
-    unsafe_allow_html=True
-)
+    st.markdown("🔁 **Tip:** Missed topics are automatically merged into upcoming weeks without breaking learning continuity.")
