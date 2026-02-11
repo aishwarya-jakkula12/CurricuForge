@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rescheduled Curriculum</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .week-box {
+            background: #eef6fb;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Rescheduled Curriculum</h2>
+
+<p><b>Subject:</b> {{ subject }}</p>
+<p><b>Level:</b> {{ level }}</p>
+<p><b>Missed Week:</b> {{ missed_week }}</p>
+
+<hr>
+
+{% for item in plan %}
+    <div class="week-box">
+        <b>Week {{ item.week }}</b>
+        <ul>
+            {% for u in item.units %}
+                <li>
+                    <b>{{ u.topic }}</b> — {{ u.subtopic }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endfor %}
+
+<br>
+<a href="/">⬅ Start New Plan</a>
+
+</body>
+</html>

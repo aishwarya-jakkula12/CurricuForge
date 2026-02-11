@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generated Curriculum</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .week-box {
+            background: #f4f6f7;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+        ul { margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<h2>Generated Curriculum</h2>
+
+<p><b>Subject:</b> {{ subject }}</p>
+<p><b>Level:</b> {{ level }}</p>
+<p><b>Duration:</b> {{ duration }} weeks</p>
+
+<hr>
+
+<h3>Preparation Schedule</h3>
+
+{% for item in plan %}
+    <div class="week-box">
+        <b>Week {{ item.week }}</b>
+        <ul>
+            {% for u in item.units %}
+                <li>
+                    <b>{{ u.topic }}</b> — {{ u.subtopic }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endfor %}
+
+<hr>
+
+<h3>Missed a Week?</h3>
+<form action="/reschedule" method="post">
+    <input type="hidden" name="subject" value="{{ subject }}">
+    <input type="hidden" name="level" value="{{ level }}">
+    <input type="hidden" name="duration" value="{{ duration }}">
+
+    <label>Enter missed week number:</label>
+    <input type="number" name="missed_week" min="1" max="{{ duration }}" required>
+
+    <button type="submit">Reschedule</button>
+</form>
+
+<br>
+<a href="/">⬅ Generate Another</a>
+
+</body>
+</html>
