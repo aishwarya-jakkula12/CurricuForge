@@ -12,22 +12,27 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LIGHT THEME CSS ----------------
+# ---------------- LIGHT + BROWN THEME CSS ----------------
 st.markdown("""
 <style>
 /* Main background */
 .stApp {
-    background-color: #f9fafb;
+    background-color: #fafaf9;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #e8f0fe;
+    background-color: #f3ede7;
+}
+
+/* Sidebar text */
+section[data-testid="stSidebar"] * {
+    color: #3b2f2f;
 }
 
 /* Buttons */
 .stButton>button {
-    background-color: #4f46e5;
+    background-color: #7c3f00;
     color: white;
     border-radius: 10px;
     padding: 8px 18px;
@@ -35,7 +40,7 @@ section[data-testid="stSidebar"] {
 }
 
 .stButton>button:hover {
-    background-color: #4338ca;
+    background-color: #6a3400;
 }
 
 /* Week cards */
@@ -49,17 +54,21 @@ section[data-testid="stSidebar"] {
 /* Normal learning week */
 .normal-week {
     background-color: #ffffff;
+    border-left: 6px solid #d6ccc2;
 }
 
-/* Project week */
+/* Project-related week */
 .project-week {
     background-color: #ecfdf5;
     border-left: 6px solid #22c55e;
 }
 
 /* Headings */
-h1, h2, h3, h4 {
-    color: #1f2937;
+h1 {
+    color: #5c2e00;
+}
+h2, h3, h4 {
+    color: #3b2f2f;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -68,7 +77,7 @@ h1, h2, h3, h4 {
 st.markdown(
     """
     <h1 style='text-align:center;'>📘 CurricuForge</h1>
-    <h4 style='text-align:center;color:#6b7280;'>
+    <h4 style='text-align:center;color:#7c3f00;'>
     Adaptive Preparation Scheduler with Project-Based Learning
     </h4>
     <hr>
@@ -101,9 +110,6 @@ if generate_btn:
     plan = create_weekly_plan(curriculum, duration)
 
     st.session_state["plan"] = plan
-    st.session_state["subject"] = subject
-    st.session_state["level"] = level
-    st.session_state["duration"] = duration
 
 # ---------------- DISPLAY SCHEDULE ----------------
 if "plan" in st.session_state:
@@ -114,8 +120,13 @@ if "plan" in st.session_state:
     for idx, week in enumerate(st.session_state["plan"]):
         col = cols[idx % 2]
 
-        is_project = any("Project" in u["topic"] for u in week["units"])
-        card_class = "project-week" if is_project else "normal-week"
+        # ✅ FIX: Detect project presence in ANY unit
+        is_project_week = any(
+            "Project" in unit["topic"]
+            for unit in week["units"]
+        )
+
+        card_class = "project-week" if is_project_week else "normal-week"
 
         with col:
             st.markdown(
@@ -128,7 +139,7 @@ if "plan" in st.session_state:
 
             for unit in week["units"]:
                 st.markdown(
-                    f"- **{unit['topic']}**  \n<span style='color:#6b7280;'>{unit['subtopic']}</span>",
+                    f"- **{unit['topic']}**  \n<span style='color:#6b4f3f;'>{unit['subtopic']}</span>",
                     unsafe_allow_html=True
                 )
 
@@ -153,15 +164,15 @@ if "plan" in st.session_state:
 
         st.session_state["plan"] = updated_plan
 
-        st.info(
-            f"Missed Week {missed_week} topics were smoothly merged into upcoming weeks."
+        st.success(
+            f"Missed Week {missed_week} topics were merged smoothly into upcoming weeks."
         )
 
 # ---------------- FOOTER ----------------
 st.markdown(
     """
     <hr>
-    <p style='text-align:center;color:#6b7280;'>
+    <p style='text-align:center;color:#7c3f00;'>
     CurricuForge • Clean • Adaptive • Project-Oriented
     </p>
     """,
