@@ -12,11 +12,63 @@ st.set_page_config(
     layout="wide"
 )
 
+# ---------------- LIGHT THEME CSS ----------------
+st.markdown("""
+<style>
+/* Main background */
+.stApp {
+    background-color: #f9fafb;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #e8f0fe;
+}
+
+/* Buttons */
+.stButton>button {
+    background-color: #4f46e5;
+    color: white;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-weight: 600;
+}
+
+.stButton>button:hover {
+    background-color: #4338ca;
+}
+
+/* Week cards */
+.week-card {
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.06);
+}
+
+/* Normal learning week */
+.normal-week {
+    background-color: #ffffff;
+}
+
+/* Project week */
+.project-week {
+    background-color: #ecfdf5;
+    border-left: 6px solid #22c55e;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+    color: #1f2937;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ---------------- HEADER ----------------
 st.markdown(
     """
     <h1 style='text-align:center;'>📘 CurricuForge</h1>
-    <h4 style='text-align:center;color:gray;'>
+    <h4 style='text-align:center;color:#6b7280;'>
     Adaptive Preparation Scheduler with Project-Based Learning
     </h4>
     <hr>
@@ -25,12 +77,9 @@ st.markdown(
 )
 
 # ---------------- SIDEBAR INPUTS ----------------
-st.sidebar.header("🧠 Preparation Details")
+st.sidebar.header("🧠 Preparation Setup")
 
-subject = st.sidebar.text_input(
-    "Course / Subject",
-    "Machine Learning"
-)
+subject = st.sidebar.text_input("Course / Subject", "Machine Learning")
 
 level = st.sidebar.selectbox(
     "Target Level",
@@ -65,28 +114,21 @@ if "plan" in st.session_state:
     for idx, week in enumerate(st.session_state["plan"]):
         col = cols[idx % 2]
 
+        is_project = any("Project" in u["topic"] for u in week["units"])
+        card_class = "project-week" if is_project else "normal-week"
+
         with col:
-            is_project = any("Project" in u["topic"] for u in week["units"])
-
-            box_color = "#E8F8F5" if is_project else "#F4F6F7"
-
             st.markdown(
                 f"""
-                <div style="
-                    background-color:{box_color};
-                    padding:15px;
-                    border-radius:10px;
-                    margin-bottom:15px;
-                    box-shadow:0px 2px 6px rgba(0,0,0,0.1);
-                ">
-                <h4>Week {week['week']}</h4>
+                <div class="week-card {card_class}">
+                    <h4>Week {week['week']}</h4>
                 """,
                 unsafe_allow_html=True
             )
 
             for unit in week["units"]:
                 st.markdown(
-                    f"- **{unit['topic']}**  \n  <span style='color:gray;'>{unit['subtopic']}</span>",
+                    f"- **{unit['topic']}**  \n<span style='color:#6b7280;'>{unit['subtopic']}</span>",
                     unsafe_allow_html=True
                 )
 
@@ -111,16 +153,16 @@ if "plan" in st.session_state:
 
         st.session_state["plan"] = updated_plan
 
-        st.success(
-            f"Preparation rescheduled successfully! Missed Week {missed_week} topics were merged into upcoming weeks."
+        st.info(
+            f"Missed Week {missed_week} topics were smoothly merged into upcoming weeks."
         )
 
 # ---------------- FOOTER ----------------
 st.markdown(
     """
     <hr>
-    <p style='text-align:center;color:gray;'>
-    CurricuForge • Built for realistic and adaptive learning
+    <p style='text-align:center;color:#6b7280;'>
+    CurricuForge • Clean • Adaptive • Project-Oriented
     </p>
     """,
     unsafe_allow_html=True
